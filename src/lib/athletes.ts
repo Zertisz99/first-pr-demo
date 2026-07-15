@@ -39,6 +39,7 @@ export type DataSource = {
 };
 
 export type Athlete = {
+  id: string;
   handle: string;
   userId: string | null;
   name: string;
@@ -77,6 +78,7 @@ type AthleteRow = Prisma.AthleteGetPayload<typeof athleteWithRelations>;
 
 function mapAthlete(row: AthleteRow): Athlete {
   return {
+    id: row.id,
     handle: row.handle,
     userId: row.userId,
     name: row.name,

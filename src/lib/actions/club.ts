@@ -10,7 +10,7 @@ import type { SportKey } from "@/generated/prisma/client";
 
 export type ActionState = { error?: string } | undefined;
 
-async function requireClub() {
+export async function requireClub() {
   const session = await auth();
   if (!session?.user || session.user.role !== "club") {
     return null;

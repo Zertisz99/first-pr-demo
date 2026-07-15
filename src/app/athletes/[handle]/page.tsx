@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { getAthlete } from "@/lib/athletes";
 import { getPendingInvites } from "@/lib/teams";
 import { getPublicHighlights } from "@/lib/videos";
+import {
+  getWatchlistStatus,
+  getPendingContactRequestStatus,
+  getPendingContactRequests,
+} from "@/lib/scouting";
 import { SPORT_LIVE_ACCENT } from "@/lib/sports";
 import { auth } from "@/auth";
 import SportTheme from "@/components/SportTheme";
@@ -15,6 +20,7 @@ import DataSources from "@/components/athlete/DataSources";
 import CareerSidebar from "@/components/athlete/CareerSidebar";
 import ProfileTabs, { type ProfileTab } from "@/components/athlete/ProfileTabs";
 import TeamInvites from "@/components/athlete/TeamInvites";
+import ContactRequests from "@/components/athlete/ContactRequests";
 
 export default async function AthleteProfilePage(props: PageProps<"/athletes/[handle]">) {
   const { handle } = await props.params;
@@ -23,10 +29,17 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
   if (!athlete) notFound();
 
   const isOwner = !!session?.user && session.user.id === athlete.userId;
-  const [invites, matchHighlights] = await Promise.all([
-    isOwner ? getPendingInvites(handle) : Promise.resolve([]),
-    getPublicHighlights(handle),
-  ]);
+  const isClubViewer = session?.user?.role === "club";
+  const [invites, matchHighlights, contactRequests, alreadyWatchlisted, hasPendingRequest] =
+    await Promise.all([
+      isOwner ? getPendingInvites(handle) : Promise.resolve([]),
+      getPublicHighlights(handle),
+      isOwner ? getPendingContactRequests(handle) : Promise.resolve([]),
+      isClubViewer ? getWatchlistStatus(session!.user.id, athlete.id) : Promise.resolve(false),
+      isClubViewer
+        ? getPendingContactRequestStatus(session!.user.id, athlete.id)
+        : Promise.resolve(false),
+    ]);
 
   const tabs: ProfileTab[] = [
     {
@@ -114,7 +127,14 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
     <SportTheme sport={athlete.sport}>
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
         {isOwner && <TeamInvites invites={invites} />}
-        <Cover athlete={athlete} isOwner={isOwner} />
+        {isOwner && <ContactRequests requests={contactRequests} />}
+        <Cover
+          athlete={athlete}
+          isOwner={isOwner}
+          isClubViewer={isClubViewer}
+          alreadyWatchlisted={alreadyWatchlisted}
+          hasPendingRequest={hasPendingRequest}
+        />
 
         <div className="mt-6">
           <StatRail athlete={athlete} />

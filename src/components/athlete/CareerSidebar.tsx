@@ -61,23 +61,6 @@ export default function CareerSidebar({
           ))}
         </ul>
       </div>
-
-      <div className="rounded-lg border border-line bg-surface-raised p-4">
-        <p className="font-display uppercase tracking-wide text-[13px] text-fg mb-1.5">
-          Scouting this athlete?
-        </p>
-        <p className="font-body text-[12.5px] text-fg-muted mb-3">
-          Every view and contact request is logged and visible to the athlete — no silent
-          scraping.
-        </p>
-        <button
-          type="button"
-          className="w-full rounded-md px-4 py-2.5 font-body text-sm font-semibold"
-          style={{ background: "var(--color-accent)", color: "var(--color-accent-fg)" }}
-        >
-          Send contact request
-        </button>
-      </div>
     </div>
   );
 }

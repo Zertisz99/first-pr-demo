@@ -517,6 +517,7 @@ enum NotificationType {
   training_session_added
   lineup_assigned
   team_announcement
+  contact_request
 }
 
 model Notification {

@@ -48,12 +48,20 @@ export default async function ClubDashboardPage() {
             </p>
           </div>
         </div>
-        <Link
-          href="/club/edit"
-          className="rounded-md border border-line-strong px-4 py-2 font-body text-sm font-semibold text-fg"
-        >
-          Edit profile
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/club/recruitment"
+            className="rounded-md border border-line-strong px-4 py-2 font-body text-sm font-semibold text-fg"
+          >
+            Recruitment
+          </Link>
+          <Link
+            href="/club/edit"
+            className="rounded-md border border-line-strong px-4 py-2 font-body text-sm font-semibold text-fg"
+          >
+            Edit profile
+          </Link>
+        </div>
       </div>
 
       {club.description && (

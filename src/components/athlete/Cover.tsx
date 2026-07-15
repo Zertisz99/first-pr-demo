@@ -1,13 +1,20 @@
 import Link from "next/link";
 import type { Athlete } from "@/lib/athletes";
 import { SPORT_LABELS, SPORT_LIVE_ACCENT } from "@/lib/sports";
+import ScoutActions from "@/components/athlete/ScoutActions";
 
 export default function Cover({
   athlete,
   isOwner = false,
+  isClubViewer = false,
+  alreadyWatchlisted = false,
+  hasPendingRequest = false,
 }: {
   athlete: Athlete;
   isOwner?: boolean;
+  isClubViewer?: boolean;
+  alreadyWatchlisted?: boolean;
+  hasPendingRequest?: boolean;
 }) {
   const jerseyDigit = athlete.name.length % 10 || 8;
 
@@ -90,24 +97,15 @@ export default function Cover({
               </Link>
             </>
           ) : (
-            <>
-              <button
-                type="button"
-                className="rounded-md px-5 py-2.5 font-body text-sm font-semibold"
-                style={{
-                  background: "var(--color-accent)",
-                  color: "var(--color-accent-fg)",
-                }}
-              >
-                Request contact
-              </button>
-              <button
-                type="button"
-                className="rounded-md border border-line-strong px-5 py-2.5 font-body text-sm font-semibold text-fg"
-              >
-                Follow
-              </button>
-            </>
+            isClubViewer && (
+              <ScoutActions
+                athleteId={athlete.id}
+                athleteHandle={athlete.handle}
+                alreadyWatchlisted={alreadyWatchlisted}
+                hasPendingRequest={hasPendingRequest}
+                athleteClaimed={!!athlete.userId}
+              />
+            )
           )}
         </div>
       </div>
