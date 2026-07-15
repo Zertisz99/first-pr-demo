@@ -8,7 +8,9 @@ import {
   HeartPulse,
   Video,
   User,
+  Building2,
 } from "lucide-react";
+import type { UserRole } from "@/generated/prisma/client";
 
 type NavItem = {
   label: string;
@@ -23,7 +25,7 @@ export default function PrimaryNav({
   role,
   athleteHandle,
 }: {
-  role: "athlete" | "coach" | undefined;
+  role: UserRole | undefined;
   athleteHandle?: string | null;
 }) {
   const pathname = usePathname();
@@ -61,6 +63,10 @@ export default function PrimaryNav({
 
   if (role === "coach") {
     items.push({ label: "Coach dashboard", href: "/coach", icon: LayoutDashboard });
+  }
+
+  if (role === "club") {
+    items.push({ label: "Club dashboard", href: "/club", icon: Building2 });
   }
 
   return (

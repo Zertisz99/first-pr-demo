@@ -17,7 +17,7 @@ export default async function CoachTeamDashboardPage(
 ) {
   const { teamId } = await props.params;
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") {
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) {
     redirect("/discover");
   }
 

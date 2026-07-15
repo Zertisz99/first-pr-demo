@@ -11,13 +11,13 @@ export type ActionState = { error?: string } | undefined;
 
 async function requireCoach() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") {
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) {
     return null;
   }
   return session.user;
 }
 
-async function uniqueTeamSlug(name: string): Promise<string> {
+export async function uniqueTeamSlug(name: string): Promise<string> {
   const base = slugify(name);
   let slug = base;
   let suffix = 1;
@@ -85,6 +85,7 @@ export async function addTeamMemberAction(
   }
 
   revalidatePath("/coach");
+  revalidatePath("/club");
 }
 
 export async function respondToInviteAction(formData: FormData): Promise<void> {
@@ -130,4 +131,5 @@ export async function removeTeamMemberAction(formData: FormData): Promise<void> 
 
   await prisma.teamMember.deleteMany({ where: { teamId, athleteId } });
   revalidatePath("/coach");
+  revalidatePath("/club");
 }

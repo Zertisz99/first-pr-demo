@@ -11,7 +11,7 @@ export default async function TeamComparePage(
   const { teamId } = await props.params;
   const searchParams = await props.searchParams;
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") {
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) {
     redirect("/discover");
   }
 

@@ -10,7 +10,7 @@ export type ActionState = { error?: string } | undefined;
 
 async function requireCoachTeam(teamId: string) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") return null;
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) return null;
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
   if (!team || team.coachId !== session.user.id) return null;

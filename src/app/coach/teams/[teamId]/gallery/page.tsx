@@ -10,7 +10,7 @@ import AddPhotoForm from "@/components/coach/AddPhotoForm";
 export default async function TeamGalleryPage(props: PageProps<"/coach/teams/[teamId]/gallery">) {
   const { teamId } = await props.params;
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") {
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) {
     redirect("/discover");
   }
 

@@ -58,6 +58,7 @@ model User {
   dependents User[]  @relation("GuardianLink")
 
   athlete Athlete?
+  club    Club?
   teams   Team[]
 
   uploadedVideos       Video[]               @relation("VideoUploader")
@@ -170,6 +171,26 @@ model DataSource {
   @@map("data_sources")
 }
 
+model Club {
+  id          String  @id @default(uuid())
+  slug        String  @unique
+  name        String
+  country     String
+  city        String?
+  foundedYear Int?
+  crestUrl    String?
+  description String?
+
+  adminId String @unique
+  admin   User   @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  teams Team[]
+
+  createdAt DateTime @default(now())
+
+  @@map("clubs")
+}
+
 model Team {
   id       String   @id @default(uuid())
   slug     String   @unique
@@ -179,6 +200,9 @@ model Team {
 
   coachId String
   coach   User   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  clubId String?
+  club   Club?   @relation(fields: [clubId], references: [id], onDelete: SetNull)
 
   members TeamMember[]
 

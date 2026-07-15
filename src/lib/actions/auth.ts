@@ -23,6 +23,17 @@ async function uniqueHandle(name: string): Promise<string> {
   return handle;
 }
 
+async function uniqueClubSlug(name: string): Promise<string> {
+  const base = slugify(name);
+  let slug = base;
+  let suffix = 1;
+  while (await prisma.club.findUnique({ where: { slug }, select: { id: true } })) {
+    suffix += 1;
+    slug = `${base}-${suffix}`;
+  }
+  return slug;
+}
+
 export async function signUpAction(
   _prevState: ActionState,
   formData: FormData
@@ -87,6 +98,19 @@ export async function signUpAction(
       },
     });
     redirectTo = `/athletes/${handle}/edit`;
+  }
+
+  if (role === "club") {
+    const slug = await uniqueClubSlug(name);
+    await prisma.club.create({
+      data: {
+        slug,
+        name,
+        country: "Not set",
+        adminId: user.id,
+      },
+    });
+    redirectTo = "/club/edit";
   }
 
   try {

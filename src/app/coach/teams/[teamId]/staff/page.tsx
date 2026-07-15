@@ -10,7 +10,7 @@ import AddStaffForm from "@/components/coach/AddStaffForm";
 export default async function TeamStaffPage(props: PageProps<"/coach/teams/[teamId]/staff">) {
   const { teamId } = await props.params;
   const session = await auth();
-  if (!session?.user || session.user.role !== "coach") {
+  if (!session?.user || !["coach", "club"].includes(session.user.role)) {
     redirect("/discover");
   }
 
