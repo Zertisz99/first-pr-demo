@@ -1,0 +1,588 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Scoped down to the tables that back the current UI (profile page +
+// discover search). Teams, recovery logs, matches, and the integrations
+// layer from the product blueprint follow once those features get built.
+
+enum SportKey {
+  football
+  basketball
+  tennis
+  swimming
+  athletics
+  martial
+  fitness
+}
+
+enum DominantSide {
+  Left
+  Right
+  Both
+}
+
+enum VideoSource {
+  upload
+  wyscout
+  instat
+}
+
+enum UserRole {
+  athlete
+  coach
+  club
+  scout
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole
+
+  // Minors get a guardian-linked account rather than an independent one —
+  // see the blueprint's consent & minors section.
+  isMinor    Boolean @default(false)
+  guardianId String?
+  guardian   User?   @relation("GuardianLink", fields: [guardianId], references: [id])
+  dependents User[]  @relation("GuardianLink")
+
+  athlete Athlete?
+  teams   Team[]
+
+  uploadedVideos       Video[]               @relation("VideoUploader")
+  videoComments        VideoComment[]
+  scoutWatchlist       ScoutWatchlist[]      @relation("ScoutWatchlistOwner")
+  scoutContactRequests ScoutContactRequest[] @relation("ScoutRequester")
+  profileViewsMade     ProfileView[]         @relation("ProfileViewer")
+  notifications        Notification[]
+  announcements        Announcement[]
+  photos               Photo[]
+
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+model Athlete {
+  id           String       @id @default(uuid())
+  handle       String       @unique
+  name         String
+  sport        SportKey
+  position     String
+  age          Int
+  heightCm     Int
+  weightKg     Int
+  dominantSide DominantSide
+  nationality  String
+  club         String
+  verified     Boolean      @default(false)
+  bio          String
+  socialLinks  Json?        @default("{}")
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Sport-specific stat shapes vary too much for fixed columns —
+  // stored as JSONB, per the blueprint's tech-stack recommendation.
+  headlineStats     Json
+  progressionTitle  String
+  progressionUnit   String
+  progressionPoints Json
+
+  achievements Achievement[]
+  career       CareerStint[]
+  highlights   HighlightVideo[]
+  dataSources  DataSource[]
+  teamMembers  TeamMember[]
+
+  recoveryLogs    RecoveryLog[]
+  injuries        Injury[]
+  sessionLogs     SessionLog[]
+  matchStats      MatchStat[]
+  matchLineups    MatchLineup[]
+  videos          Video[]
+  videoTags       VideoAthleteTag[]
+  watchlistedBy   ScoutWatchlist[]
+  contactRequests ScoutContactRequest[]
+  profileViews    ProfileView[]
+  goals           AthleteGoal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("athletes")
+}
+
+model Achievement {
+  id        String  @id @default(uuid())
+  athleteId String
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  title     String
+  period    String
+  sortOrder Int     @default(0)
+
+  @@map("achievements")
+}
+
+model CareerStint {
+  id        String  @id @default(uuid())
+  athleteId String
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  club      String
+  period    String
+  note      String?
+  sortOrder Int     @default(0)
+
+  @@map("career_stints")
+}
+
+model HighlightVideo {
+  id        String      @id @default(uuid())
+  athleteId String
+  athlete   Athlete     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  title     String
+  duration  String
+  date      DateTime
+  source    VideoSource
+
+  @@map("highlight_videos")
+}
+
+model DataSource {
+  id        String  @id @default(uuid())
+  athleteId String
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  provider  String
+  label     String
+  verified  Boolean @default(false)
+
+  @@map("data_sources")
+}
+
+model Team {
+  id       String   @id @default(uuid())
+  slug     String   @unique
+  name     String
+  sport    SportKey
+  ageGroup String?
+
+  coachId String
+  coach   User   @relation(fields: [coachId], references: [id], onDelete: Cascade)
+
+  members TeamMember[]
+
+  trainingPlans   TrainingPlan[]
+  matches         Match[]
+  videos          Video[]
+  announcements   Announcement[]
+  leagueStandings LeagueStanding[]
+  staff           TeamStaff[]
+  photos          Photo[]
+
+  createdAt DateTime @default(now())
+
+  @@map("teams")
+}
+
+enum TeamMemberStatus {
+  pending
+  active
+}
+
+model TeamMember {
+  id        String           @id @default(uuid())
+  teamId    String
+  team      Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  status    TeamMemberStatus @default(pending)
+  joinedAt  DateTime         @default(now())
+
+  @@unique([teamId, athleteId])
+  @@map("team_members")
+}
+
+// ============ RECOVERY ============
+
+model RecoveryLog {
+  id             String   @id @default(uuid())
+  athleteId      String
+  athlete        Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  logDate        DateTime @db.Date
+  sleepHours     Float
+  sleepQuality   Int
+  fatigueScore   Int
+  stressScore    Int
+  moodScore      Int
+  readinessScore Int
+  notes          String?
+
+  sorenessEntries SorenessEntry[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([athleteId, logDate])
+  @@index([athleteId, logDate])
+  @@map("recovery_logs")
+}
+
+model SorenessEntry {
+  id            String      @id @default(uuid())
+  recoveryLogId String
+  recoveryLog   RecoveryLog @relation(fields: [recoveryLogId], references: [id], onDelete: Cascade)
+  bodyRegion    String
+  intensity     Int
+
+  @@map("soreness_entries")
+}
+
+enum InjuryStatus {
+  active
+  recovering
+  cleared
+}
+
+model Injury {
+  id                 String       @id @default(uuid())
+  athleteId          String
+  athlete            Athlete      @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  injuryType         String
+  status             InjuryStatus @default(active)
+  reportedDate       DateTime     @db.Date
+  expectedReturnDate DateTime?    @db.Date
+  notes              String?
+
+  @@map("injuries")
+}
+
+// ============ TRAINING ============
+
+model TrainingPlan {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy String
+  weekStart DateTime @db.Date
+  title     String
+
+  sessions TrainingSession[]
+
+  @@map("training_plans")
+}
+
+model TrainingSession {
+  id             String       @id @default(uuid())
+  planId         String
+  plan           TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  sessionDate    DateTime     @db.Date
+  sessionType    String
+  intensityLabel String
+  durationMin    Int
+  notes          String?
+
+  logs SessionLog[]
+
+  @@map("training_sessions")
+}
+
+model SessionLog {
+  id                String          @id @default(uuid())
+  sessionId         String
+  session           TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  athleteId         String
+  athlete           Athlete         @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  completed         Boolean         @default(false)
+  rpe               Int?
+  actualDurationMin Int?
+  athleteNotes      String?
+  loggedAt          DateTime        @default(now())
+
+  @@unique([sessionId, athleteId])
+  @@map("session_logs")
+}
+
+// ============ MATCHES ============
+
+enum MatchOutcome {
+  win
+  draw
+  loss
+}
+
+model Match {
+  id        String        @id @default(uuid())
+  teamId    String
+  team      Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  opponent  String
+  matchDate DateTime
+  venue     String?
+  result    String?
+  outcome   MatchOutcome?
+  formation String?
+
+  stats   MatchStat[]
+  videos  Video[]
+  lineups MatchLineup[]
+
+  @@map("matches")
+}
+
+enum LineupRole {
+  starter
+  bench
+}
+
+model MatchLineup {
+  id        String     @id @default(uuid())
+  matchId   String
+  match     Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete    @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  role      LineupRole
+  position  String?
+
+  @@unique([matchId, athleteId])
+  @@map("match_lineups")
+}
+
+model MatchStat {
+  id        String  @id @default(uuid())
+  matchId   String
+  match     Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  statType  String
+  value     Float
+
+  @@map("match_stats")
+}
+
+// ============ VIDEO REVIEW ============
+// Distinct from HighlightVideo (the curated clips shown on a public profile):
+// this is the raw upload/tag/comment workflow coaches and athletes use to
+// review training and match footage before anything is published.
+
+enum VideoVisibility {
+  public
+  team_only
+  private
+}
+
+model Video {
+  id           String          @id @default(uuid())
+  uploadedById String
+  uploadedBy   User            @relation("VideoUploader", fields: [uploadedById], references: [id])
+  teamId       String?
+  team         Team?           @relation(fields: [teamId], references: [id])
+  matchId      String?
+  match        Match?          @relation(fields: [matchId], references: [id])
+  athleteId    String?
+  athlete      Athlete?        @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  storageUrl   String
+  thumbnailUrl String?
+  tags         String[]        @default([])
+  visibility   VideoVisibility @default(team_only)
+  isHighlight  Boolean         @default(false)
+
+  athleteTags VideoAthleteTag[]
+  comments    VideoComment[]
+
+  createdAt DateTime @default(now())
+
+  @@map("videos")
+}
+
+model VideoAthleteTag {
+  id        String  @id @default(uuid())
+  videoId   String
+  video     Video   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, athleteId])
+  @@map("video_athlete_tags")
+}
+
+model VideoComment {
+  id               String   @id @default(uuid())
+  videoId          String
+  video            Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  timestampSeconds Float?
+  comment          String
+  createdAt        DateTime @default(now())
+
+  @@map("video_comments")
+}
+
+// ============ SCOUTING ============
+
+model ScoutWatchlist {
+  id          String   @id @default(uuid())
+  scoutUserId String
+  scout       User     @relation("ScoutWatchlistOwner", fields: [scoutUserId], references: [id])
+  athleteId   String
+  athlete     Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  notes       String?
+  addedAt     DateTime @default(now())
+
+  @@unique([scoutUserId, athleteId])
+  @@map("scout_watchlists")
+}
+
+enum ContactRequestStatus {
+  pending
+  accepted
+  declined
+}
+
+model ScoutContactRequest {
+  id          String               @id @default(uuid())
+  scoutUserId String
+  scout       User                 @relation("ScoutRequester", fields: [scoutUserId], references: [id])
+  athleteId   String
+  athlete     Athlete              @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  status      ContactRequestStatus @default(pending)
+  message     String
+  createdAt   DateTime             @default(now())
+
+  @@map("scout_contact_requests")
+}
+
+model ProfileView {
+  id        String   @id @default(uuid())
+  athleteId String
+  athlete   Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  viewerId  String
+  viewer    User     @relation("ProfileViewer", fields: [viewerId], references: [id])
+  viewedAt  DateTime @default(now())
+
+  @@map("profile_views")
+}
+
+model AthleteGoal {
+  id              String   @id @default(uuid())
+  athleteId       String
+  athlete         Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  title           String
+  progressPercent Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("athlete_goals")
+}
+
+// ============ NOTIFICATIONS ============
+
+enum NotificationType {
+  video_comment
+  training_session_added
+  lineup_assigned
+  team_announcement
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// ============ TEAM ANNOUNCEMENTS ============
+// One-way coach -> team feed (training changes, match updates, events),
+// not a full messaging/DM system.
+
+enum AnnouncementCategory {
+  general
+  training_change
+  match_update
+  event
+}
+
+model Announcement {
+  id        String                @id @default(uuid())
+  teamId    String
+  team      Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User                  @relation(fields: [authorId], references: [id])
+  category  AnnouncementCategory  @default(general)
+  title     String
+  body      String
+  createdAt DateTime              @default(now())
+
+  @@map("announcements")
+}
+
+// ============ TEAM PUBLIC PAGE ============
+// Lightweight, manually-entered league table — not a real multi-team
+// competition model. Coaches type in whatever their league site shows;
+// most rows are opponents who aren't platform teams at all.
+
+model LeagueStanding {
+  id        String @id @default(uuid())
+  teamId    String
+  team      Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamName  String
+  played    Int    @default(0)
+  won       Int    @default(0)
+  drawn     Int    @default(0)
+  lost      Int    @default(0)
+  points    Int    @default(0)
+  sortOrder Int    @default(0)
+
+  @@map("league_standings")
+}
+
+enum StaffRole {
+  head_coach
+  assistant_coach
+  fitness_coach
+  goalkeeper_coach
+  physio
+  analyst
+}
+
+model TeamStaff {
+  id     String    @id @default(uuid())
+  teamId String
+  team   Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name   String
+  role   StaffRole
+  email  String?
+
+  @@map("team_staff")
+}
+
+model Photo {
+  id           String   @id @default(uuid())
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  url          String
+  caption      String?
+  createdAt    DateTime @default(now())
+
+  @@map("photos")
+}
