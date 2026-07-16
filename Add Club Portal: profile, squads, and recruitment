@@ -1,0 +1,20 @@
+## Summary
+- New Club model (1:1 with a "club"-role User) and optional Team.clubId link
+- /club dashboard (profile, create-squad, roster management) and /club/edit
+- Squads reuse the existing /coach/teams/[teamId]/* pages (roster, planner,
+  matches, recovery, injuries, etc.) instead of duplicating club-specific UI
+- /club/recruitment: watchlist + contact requests, wiring up the previously
+  schema-only ScoutWatchlist/ScoutContactRequest models
+- Athlete profile gets working "Watchlist"/"Request contact" actions for
+  club viewers, plus an Accept/Decline flow with real notifications
+- Removed a dead "Send contact request" button that was shown to every
+  profile viewer and did nothing
+
+## Test plan
+- Sign up with role "Club / Academy" → /club/edit → /club
+- Create a squad, add/remove athletes from its roster, open its dashboard
+- From /club/recruitment: watchlist an unclaimed athlete, send a contact
+  request to a claimed one
+- Log in as that athlete, confirm the request + notification appear,
+  accept it, confirm status flips on the club side
+- Confirm existing coach accounts (e.g. marcus@example.com) are unaffected
