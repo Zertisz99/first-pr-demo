@@ -4,7 +4,7 @@ A tiny repo for practicing the GitHub pull request workflow.
 
 ## What is this?
 
-This repo exsits so you can open your first pull request with a real,
+This repo exists so you can open your first pull request with a real,
 end-to-end flow: clone, branch, commit, push, and merge.
 
 ## Usage
