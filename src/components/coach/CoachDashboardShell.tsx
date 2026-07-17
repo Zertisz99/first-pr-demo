@@ -4,12 +4,14 @@ import { useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 import CoachSidebar from "@/components/coach/CoachSidebar";
 import CoachBottomNav from "@/components/coach/CoachBottomNav";
+import type { UserRole } from "@/generated/prisma/client";
 
 export default function CoachDashboardShell({
   teamId,
   teamSlug,
   teamName,
   sportLabel,
+  viewerRole,
   main,
   rightPanel,
 }: {
@@ -17,6 +19,7 @@ export default function CoachDashboardShell({
   teamSlug: string;
   teamName: string;
   sportLabel: string;
+  viewerRole: UserRole;
   main: ReactNode;
   rightPanel: ReactNode;
 }) {
@@ -42,6 +45,7 @@ export default function CoachDashboardShell({
             teamSlug={teamSlug}
             teamName={teamName}
             sportLabel={sportLabel}
+            viewerRole={viewerRole}
           />
         </div>
 

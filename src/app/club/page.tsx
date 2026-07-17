@@ -3,9 +3,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getClubByAdminId, getClubTeams } from "@/lib/clubs";
 import { getAllAthletes } from "@/lib/athletes";
+import { getSquadCoaches } from "@/lib/teams";
 import { removeTeamMemberAction } from "@/lib/actions/team";
+import { removeCoachAssignmentAction } from "@/lib/actions/coachAssignments";
 import CreateSquadForm from "@/components/club/CreateSquadForm";
 import AddMemberForm from "@/components/coach/AddMemberForm";
+import InviteCoachForm from "@/components/club/InviteCoachForm";
 
 export default async function ClubDashboardPage() {
   const session = await auth();
@@ -20,6 +23,10 @@ export default async function ClubDashboardPage() {
     getClubTeams(club.id),
     getAllAthletes(),
   ]);
+
+  const squadCoaches = await Promise.all(
+    squads.map((squad) => getSquadCoaches(squad.id))
+  );
 
   const initials = club.name
     .split(" ")
@@ -84,7 +91,8 @@ export default async function ClubDashboardPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          {squads.map((squad) => {
+          {squads.map((squad, i) => {
+            const coaches = squadCoaches[i];
             const memberHandles = new Set(squad.members.map((m) => m.handle));
             const candidates = allAthletes
               .filter((a) => !memberHandles.has(a.handle))
@@ -165,6 +173,50 @@ export default async function ClubDashboardPage() {
                 )}
 
                 <AddMemberForm teamId={squad.id} candidates={candidates} />
+
+                <div className="mt-5 border-t border-line pt-4">
+                  <h4 className="mb-2 font-display uppercase tracking-wide text-[13px] text-fg-muted">
+                    Coaches
+                  </h4>
+                  {coaches.length > 0 && (
+                    <ul className="mb-3 flex flex-col gap-2">
+                      {coaches.map((c) => (
+                        <li
+                          key={c.assignmentId}
+                          className="flex items-center justify-between rounded-md border border-line px-3 py-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-body text-sm font-semibold text-fg">
+                              {c.name}
+                            </span>
+                            <span className="font-body text-[12.5px] text-fg-muted">
+                              {c.email}
+                            </span>
+                            {c.status === "pending" && (
+                              <span className="rounded-full bg-surface-sunken px-2 py-0.5 font-data text-[10px] uppercase tracking-wide text-fg-faint">
+                                Pending
+                              </span>
+                            )}
+                          </div>
+                          <form action={removeCoachAssignmentAction}>
+                            <input
+                              type="hidden"
+                              name="assignmentId"
+                              value={c.assignmentId}
+                            />
+                            <button
+                              type="submit"
+                              className="font-body text-[12.5px] font-medium text-fg-muted hover:text-[var(--color-bad)]"
+                            >
+                              {c.status === "pending" ? "Cancel invite" : "Remove"}
+                            </button>
+                          </form>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <InviteCoachForm teamId={squad.id} />
+                </div>
               </div>
             );
           })}

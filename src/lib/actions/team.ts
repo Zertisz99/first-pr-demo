@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { SPORT_KEYS } from "@/lib/sports";
 import { slugify } from "@/lib/slug";
+import { canManageTeam } from "@/lib/teams";
 import type { SportKey } from "@/generated/prisma/client";
 
 export type ActionState = { error?: string } | undefined;
@@ -63,7 +64,7 @@ export async function addTeamMemberAction(
   if (!teamId || !athleteHandle) return { error: "Choose an athlete to add." };
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
-  if (!team || team.coachId !== coach.id) {
+  if (!team || !(await canManageTeam(team, coach.id))) {
     return { error: "That team doesn't belong to you." };
   }
 
@@ -127,7 +128,7 @@ export async function removeTeamMemberAction(formData: FormData): Promise<void> 
   const athleteId = String(formData.get("athleteId") ?? "");
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
-  if (!team || team.coachId !== coach.id) return;
+  if (!team || !(await canManageTeam(team, coach.id))) return;
 
   await prisma.teamMember.deleteMany({ where: { teamId, athleteId } });
   revalidatePath("/coach");

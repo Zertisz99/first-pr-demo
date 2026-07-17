@@ -60,6 +60,7 @@ model User {
   athlete Athlete?
   club    Club?
   teams   Team[]
+  coachAssignments SquadCoachAssignment[]
 
   uploadedVideos       Video[]               @relation("VideoUploader")
   videoComments        VideoComment[]
@@ -213,6 +214,7 @@ model Team {
   leagueStandings LeagueStanding[]
   staff           TeamStaff[]
   photos          Photo[]
+  coachAssignments SquadCoachAssignment[]
 
   createdAt DateTime @default(now())
 
@@ -235,6 +237,24 @@ model TeamMember {
 
   @@unique([teamId, athleteId])
   @@map("team_members")
+}
+
+enum CoachAssignmentStatus {
+  pending
+  active
+}
+
+model SquadCoachAssignment {
+  id        String                @id @default(uuid())
+  teamId    String
+  team      Team                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     User                  @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  status    CoachAssignmentStatus @default(pending)
+  invitedAt DateTime              @default(now())
+
+  @@unique([teamId, coachId])
+  @@map("squad_coach_assignments")
 }
 
 // ============ RECOVERY ============
@@ -518,6 +538,7 @@ enum NotificationType {
   lineup_assigned
   team_announcement
   contact_request
+  coach_invite
 }
 
 model Notification {

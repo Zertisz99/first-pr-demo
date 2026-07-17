@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { canManageTeam } from "@/lib/teams";
 import { dateOnly } from "@/lib/training";
 import { notifyUsers } from "@/lib/notifications";
 
@@ -13,7 +14,7 @@ async function requireCoachTeam(teamId: string) {
   if (!session?.user || !["coach", "club"].includes(session.user.role)) return null;
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
-  if (!team || team.coachId !== session.user.id) return null;
+  if (!team || !(await canManageTeam(team, session.user.id))) return null;
 
   return team;
 }

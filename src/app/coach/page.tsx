@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getCoachTeams } from "@/lib/teams";
+import { getCoachTeams, getPendingCoachInvites } from "@/lib/teams";
 import { getAllAthletes } from "@/lib/athletes";
 import { removeTeamMemberAction } from "@/lib/actions/team";
 import CreateTeamForm from "@/components/coach/CreateTeamForm";
 import AddMemberForm from "@/components/coach/AddMemberForm";
+import SquadInvites from "@/components/coach/SquadInvites";
 
 export default async function CoachDashboardPage() {
   const session = await auth();
@@ -13,9 +14,10 @@ export default async function CoachDashboardPage() {
     redirect("/discover");
   }
 
-  const [teams, allAthletes] = await Promise.all([
+  const [teams, allAthletes, squadInvites] = await Promise.all([
     getCoachTeams(session.user.id),
     getAllAthletes(),
+    getPendingCoachInvites(session.user.id),
   ]);
 
   return (
@@ -28,6 +30,8 @@ export default async function CoachDashboardPage() {
           Manage your teams and rosters, {session.user.name}.
         </p>
       </div>
+
+      <SquadInvites invites={squadInvites} />
 
       <div className="mb-10">
         <CreateTeamForm />

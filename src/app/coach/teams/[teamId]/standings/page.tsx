@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { canManageTeam } from "@/lib/teams";
 import { SPORT_LABELS } from "@/lib/sports";
 import { getLeagueStandings } from "@/lib/standings";
 import AddStandingRowForm from "@/components/coach/AddStandingRowForm";
@@ -18,14 +19,17 @@ export default async function TeamStandingsPage(
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
   if (!team) notFound();
-  if (team.coachId !== session.user.id) redirect("/coach");
+  if (!(await canManageTeam(team, session.user.id))) redirect("/coach");
 
   const rows = await getLeagueStandings(teamId);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
-      <Link href="/coach" className="font-body text-[13px] text-fg-muted hover:text-fg">
-        ← Coach dashboard
+      <Link
+        href={session.user.role === "club" ? "/club" : "/coach"}
+        className="font-body text-[13px] text-fg-muted hover:text-fg"
+      >
+        ← {session.user.role === "club" ? "Club" : "Coach"} dashboard
       </Link>
 
       <div className="mt-2 mb-8">

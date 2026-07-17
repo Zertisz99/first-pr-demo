@@ -18,6 +18,7 @@ import {
   Images,
   ExternalLink,
 } from "lucide-react";
+import type { UserRole } from "@/generated/prisma/client";
 
 type NavItem = {
   label: string;
@@ -31,17 +32,20 @@ export default function CoachSidebar({
   teamSlug,
   teamName,
   sportLabel,
+  viewerRole,
 }: {
   teamId: string;
   teamSlug: string;
   teamName: string;
   sportLabel: string;
+  viewerRole: UserRole;
 }) {
   const pathname = usePathname();
+  const rosterHref = viewerRole === "club" ? "/club" : "/coach";
 
   const items: NavItem[] = [
     { label: "Dashboard", icon: LayoutDashboard, href: `/coach/teams/${teamId}/dashboard` },
-    { label: "Roster", icon: Users, href: `/coach` },
+    { label: "Roster", icon: Users, href: rosterHref },
     { label: "Planner", icon: CalendarClock, href: `/coach/teams/${teamId}/planner` },
     { label: "Matches", icon: Trophy, href: `/coach/teams/${teamId}/matches` },
     { label: "Videos", icon: Video, href: `/coach/teams/${teamId}/videos` },

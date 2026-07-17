@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { canManageTeam } from "@/lib/teams";
 import { SPORT_LABELS, SPORT_LIVE_ACCENT } from "@/lib/sports";
 import { getCoachDashboardData } from "@/lib/coach-dashboard";
 import SportTheme from "@/components/SportTheme";
@@ -23,7 +24,7 @@ export default async function CoachTeamDashboardPage(
 
   const team = await prisma.team.findUnique({ where: { id: teamId } });
   if (!team) notFound();
-  if (team.coachId !== session.user.id) redirect("/coach");
+  if (!(await canManageTeam(team, session.user.id))) redirect("/coach");
 
   const data = await getCoachDashboardData(teamId);
 
@@ -34,6 +35,7 @@ export default async function CoachTeamDashboardPage(
         teamSlug={team.slug}
         teamName={team.name}
         sportLabel={SPORT_LABELS[team.sport]}
+        viewerRole={session.user.role}
         main={
           <>
             <div
