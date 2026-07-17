@@ -68,6 +68,7 @@ model User {
   scoutContactRequests ScoutContactRequest[] @relation("ScoutRequester")
   profileViewsMade     ProfileView[]         @relation("ProfileViewer")
   notifications        Notification[]
+  notificationsSent    Notification[]        @relation("NotificationSender")
   announcements        Announcement[]
   photos               Photo[]
 
@@ -539,12 +540,15 @@ enum NotificationType {
   team_announcement
   contact_request
   coach_invite
+  reply
 }
 
 model Notification {
   id        String           @id @default(uuid())
   userId    String
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderId  String?
+  sender    User?            @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
   type      NotificationType
   message   String
   link      String?

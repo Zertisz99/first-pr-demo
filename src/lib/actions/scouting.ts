@@ -77,7 +77,7 @@ export async function sendContactRequestAction(
     [athlete.userId],
     "contact_request",
     `${club.name} sent you a contact request`,
-    `/athletes/${athlete.handle}`
+    { link: `/athletes/${athlete.handle}`, senderId: club.adminId }
   );
 
   revalidatePath(`/athletes/${athlete.handle}`);

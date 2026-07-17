@@ -130,11 +130,12 @@ export async function setLineupRoleAction(
 
     if (member.athlete.userId) {
       const roleLabel = ROLE_LABELS[team.sport][role];
+      const session = await auth();
       await notifyUsers(
         [member.athlete.userId],
         "lineup_assigned",
         `You're ${roleLabel.toLowerCase()} for the match vs ${match.opponent}`,
-        `/athletes/${member.athlete.handle}/matches`
+        { link: `/athletes/${member.athlete.handle}/matches`, senderId: session?.user?.id }
       );
     }
   } else {

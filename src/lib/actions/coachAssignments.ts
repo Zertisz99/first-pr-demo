@@ -46,7 +46,7 @@ export async function inviteCoachAction(
     [coach.id],
     "coach_invite",
     `${club.name} invited you to help coach ${team.name}`,
-    "/coach"
+    { link: "/coach", senderId: club.adminId }
   );
 
   revalidatePath("/club");

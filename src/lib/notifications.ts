@@ -8,6 +8,8 @@ export type NotificationEntry = {
   link: string | null;
   read: boolean;
   createdAt: string;
+  senderId: string | null;
+  senderName: string | null;
 };
 
 function toDateKey(d: Date): string {
@@ -22,6 +24,7 @@ export async function getNotifications(
     where: { userId },
     orderBy: { createdAt: "desc" },
     take: limit,
+    include: { sender: { select: { id: true, name: true } } },
   });
 
   return rows.map((n) => ({
@@ -31,6 +34,8 @@ export async function getNotifications(
     link: n.link,
     read: n.read,
     createdAt: toDateKey(n.createdAt),
+    senderId: n.sender?.id ?? null,
+    senderName: n.sender?.name ?? null,
   }));
 }
 
@@ -42,12 +47,18 @@ export async function notifyUsers(
   userIds: string[],
   type: NotificationType,
   message: string,
-  link?: string
+  options?: { link?: string; senderId?: string }
 ): Promise<void> {
   const uniqueIds = Array.from(new Set(userIds));
   if (uniqueIds.length === 0) return;
 
   await prisma.notification.createMany({
-    data: uniqueIds.map((userId) => ({ userId, type, message, link: link ?? null })),
+    data: uniqueIds.map((userId) => ({
+      userId,
+      type,
+      message,
+      link: options?.link ?? null,
+      senderId: options?.senderId ?? null,
+    })),
   });
 }

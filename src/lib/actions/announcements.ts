@@ -56,7 +56,9 @@ export async function createAnnouncementAction(
   const recipientIds = members
     .map((m) => m.athlete.userId)
     .filter((id): id is string => !!id);
-  await notifyUsers(recipientIds, "team_announcement", `New team post: ${title}`);
+  await notifyUsers(recipientIds, "team_announcement", `New team post: ${title}`, {
+    senderId: auth_.coachId,
+  });
 
   revalidatePath(`/coach/teams/${teamId}/announcements`);
 }

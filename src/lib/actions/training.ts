@@ -82,10 +82,12 @@ export async function addTrainingSessionAction(
   const recipientIds = members
     .map((m) => m.athlete.userId)
     .filter((id): id is string => !!id);
+  const session = await auth();
   await notifyUsers(
     recipientIds,
     "training_session_added",
-    `New ${sessionType.toLowerCase()} session added to ${plan.title}`
+    `New ${sessionType.toLowerCase()} session added to ${plan.title}`,
+    { senderId: session?.user?.id }
   );
 
   revalidatePath(`/coach/teams/${teamId}/planner`);

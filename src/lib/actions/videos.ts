@@ -144,12 +144,10 @@ export async function addVideoCommentAction(
   const recipientIds = tags
     .map((t) => t.athlete.userId)
     .filter((id): id is string => !!id && id !== auth_.coachId);
-  await notifyUsers(
-    recipientIds,
-    "video_comment",
-    `New comment on "${video.title}"`,
-    `/coach/teams/${teamId}/videos`
-  );
+  await notifyUsers(recipientIds, "video_comment", `New comment on "${video.title}"`, {
+    link: `/coach/teams/${teamId}/videos`,
+    senderId: auth_.coachId,
+  });
 
   revalidatePath(`/coach/teams/${teamId}/videos`);
 }
