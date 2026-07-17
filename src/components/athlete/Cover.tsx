@@ -6,13 +6,13 @@ import ScoutActions from "@/components/athlete/ScoutActions";
 export default function Cover({
   athlete,
   isOwner = false,
-  isClubViewer = false,
+  canScoutAthlete = false,
   alreadyWatchlisted = false,
   hasPendingRequest = false,
 }: {
   athlete: Athlete;
   isOwner?: boolean;
-  isClubViewer?: boolean;
+  canScoutAthlete?: boolean;
   alreadyWatchlisted?: boolean;
   hasPendingRequest?: boolean;
 }) {
@@ -97,7 +97,7 @@ export default function Cover({
               </Link>
             </>
           ) : (
-            isClubViewer && (
+            canScoutAthlete && (
               <ScoutActions
                 athleteId={athlete.id}
                 athleteHandle={athlete.handle}

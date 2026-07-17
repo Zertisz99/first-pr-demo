@@ -113,6 +113,10 @@ export async function signUpAction(
     redirectTo = "/club/edit";
   }
 
+  if (role === "scout") {
+    redirectTo = "/scout";
+  }
+
   try {
     await signIn("credentials", { email, password, redirectTo });
   } catch (err) {

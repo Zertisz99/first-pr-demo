@@ -29,14 +29,15 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
   if (!athlete) notFound();
 
   const isOwner = !!session?.user && session.user.id === athlete.userId;
-  const isClubViewer = session?.user?.role === "club";
+  const canScoutAthlete =
+    session?.user?.role === "club" || session?.user?.role === "scout";
   const [invites, matchHighlights, contactRequests, alreadyWatchlisted, hasPendingRequest] =
     await Promise.all([
       isOwner ? getPendingInvites(handle) : Promise.resolve([]),
       getPublicHighlights(handle),
       isOwner ? getPendingContactRequests(handle) : Promise.resolve([]),
-      isClubViewer ? getWatchlistStatus(session!.user.id, athlete.id) : Promise.resolve(false),
-      isClubViewer
+      canScoutAthlete ? getWatchlistStatus(session!.user.id, athlete.id) : Promise.resolve(false),
+      canScoutAthlete
         ? getPendingContactRequestStatus(session!.user.id, athlete.id)
         : Promise.resolve(false),
     ]);
@@ -131,7 +132,7 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
         <Cover
           athlete={athlete}
           isOwner={isOwner}
-          isClubViewer={isClubViewer}
+          canScoutAthlete={canScoutAthlete}
           alreadyWatchlisted={alreadyWatchlisted}
           hasPendingRequest={hasPendingRequest}
         />

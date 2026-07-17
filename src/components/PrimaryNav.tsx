@@ -9,6 +9,7 @@ import {
   Video,
   User,
   Building2,
+  Binoculars,
 } from "lucide-react";
 import type { UserRole } from "@/generated/prisma/client";
 
@@ -67,6 +68,10 @@ export default function PrimaryNav({
 
   if (role === "club") {
     items.push({ label: "Club dashboard", href: "/club", icon: Building2 });
+  }
+
+  if (role === "scout") {
+    items.push({ label: "Scout dashboard", href: "/scout", icon: Binoculars });
   }
 
   return (

@@ -8,9 +8,24 @@ import { notifyUsers } from "@/lib/notifications";
 
 export type ActionState = { error?: string } | undefined;
 
+async function requireScoutOrClub(): Promise<
+  { scoutUserId: string; displayName: string } | null
+> {
+  const session = await auth();
+  if (!session?.user) return null;
+  if (session.user.role === "club") {
+    const club = await requireClub();
+    return club ? { scoutUserId: club.adminId, displayName: club.name } : null;
+  }
+  if (session.user.role === "scout") {
+    return { scoutUserId: session.user.id, displayName: session.user.name ?? "A scout" };
+  }
+  return null;
+}
+
 export async function addToWatchlistAction(formData: FormData): Promise<void> {
-  const club = await requireClub();
-  if (!club) return;
+  const actor = await requireScoutOrClub();
+  if (!actor) return;
 
   const athleteId = String(formData.get("athleteId") ?? "");
   const athleteHandle = String(formData.get("athleteHandle") ?? "");
@@ -18,7 +33,7 @@ export async function addToWatchlistAction(formData: FormData): Promise<void> {
 
   try {
     await prisma.scoutWatchlist.create({
-      data: { scoutUserId: club.adminId, athleteId },
+      data: { scoutUserId: actor.scoutUserId, athleteId },
     });
   } catch {
     // already watchlisted — no-op
@@ -26,30 +41,32 @@ export async function addToWatchlistAction(formData: FormData): Promise<void> {
 
   if (athleteHandle) revalidatePath(`/athletes/${athleteHandle}`);
   revalidatePath("/club/recruitment");
+  revalidatePath("/scout");
 }
 
 export async function removeFromWatchlistAction(formData: FormData): Promise<void> {
-  const club = await requireClub();
-  if (!club) return;
+  const actor = await requireScoutOrClub();
+  if (!actor) return;
 
   const athleteId = String(formData.get("athleteId") ?? "");
   const athleteHandle = String(formData.get("athleteHandle") ?? "");
   if (!athleteId) return;
 
   await prisma.scoutWatchlist.deleteMany({
-    where: { scoutUserId: club.adminId, athleteId },
+    where: { scoutUserId: actor.scoutUserId, athleteId },
   });
 
   if (athleteHandle) revalidatePath(`/athletes/${athleteHandle}`);
   revalidatePath("/club/recruitment");
+  revalidatePath("/scout");
 }
 
 export async function sendContactRequestAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const club = await requireClub();
-  if (!club) return { error: "You need a club account to do that." };
+  const actor = await requireScoutOrClub();
+  if (!actor) return { error: "You need a club or scout account to do that." };
 
   const athleteId = String(formData.get("athleteId") ?? "");
   const message = String(formData.get("message") ?? "").trim();
@@ -64,24 +81,25 @@ export async function sendContactRequestAction(
   if (!athlete.userId) return { error: "This profile hasn't been claimed yet." };
 
   const existing = await prisma.scoutContactRequest.findFirst({
-    where: { scoutUserId: club.adminId, athleteId, status: "pending" },
+    where: { scoutUserId: actor.scoutUserId, athleteId, status: "pending" },
     select: { id: true },
   });
   if (existing) return { error: "You already have a pending request with this athlete." };
 
   await prisma.scoutContactRequest.create({
-    data: { scoutUserId: club.adminId, athleteId, message },
+    data: { scoutUserId: actor.scoutUserId, athleteId, message },
   });
 
   await notifyUsers(
     [athlete.userId],
     "contact_request",
-    `${club.name} sent you a contact request`,
-    { link: `/athletes/${athlete.handle}`, senderId: club.adminId }
+    `${actor.displayName} sent you a contact request`,
+    { link: `/athletes/${athlete.handle}`, senderId: actor.scoutUserId }
   );
 
   revalidatePath(`/athletes/${athlete.handle}`);
   revalidatePath("/club/recruitment");
+  revalidatePath("/scout");
 }
 
 export async function respondToContactRequestAction(formData: FormData): Promise<void> {
