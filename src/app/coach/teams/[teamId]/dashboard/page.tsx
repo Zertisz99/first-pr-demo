@@ -12,6 +12,7 @@ import UpcomingEventsWidget from "@/components/coach/UpcomingEventsWidget";
 import AnnouncementsFeed from "@/components/dashboard/AnnouncementsFeed";
 import RosterSummaryWidget from "@/components/coach/RosterSummaryWidget";
 import SeasonRecordWidget from "@/components/dashboard/SeasonRecordWidget";
+import TeamVideosWidget from "@/components/coach/TeamVideosWidget";
 
 export default async function CoachTeamDashboardPage(
   props: PageProps<"/coach/teams/[teamId]/dashboard">
@@ -42,7 +43,7 @@ export default async function CoachTeamDashboardPage(
               className="rounded-2xl border border-line p-6 sm:p-8"
               style={{
                 background:
-                  "linear-gradient(135deg, color-mix(in srgb, var(--color-sport-live) 30%, var(--color-surface-sunken)) 0%, var(--color-surface-sunken) 70%)",
+                  "linear-gradient(135deg, color-mix(in srgb, var(--color-sport-live) 30%, var(--color-surface-sunken)) 0%, color-mix(in srgb, var(--color-sport-live-secondary) 20%, var(--color-surface-sunken)) 100%)",
               }}
             >
               <h1 className="font-display text-3xl font-bold uppercase tracking-wide text-fg sm:text-4xl">
@@ -69,6 +70,11 @@ export default async function CoachTeamDashboardPage(
               accent={SPORT_LIVE_ACCENT}
             />
             <AnnouncementsFeed announcements={data.announcements} />
+            <TeamVideosWidget
+              teamId={teamId}
+              videos={data.recentVideos}
+              accent={SPORT_LIVE_ACCENT}
+            />
           </>
         }
         rightPanel={

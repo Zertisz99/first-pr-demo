@@ -13,6 +13,7 @@ const SOURCE_LABEL: Record<HighlightVideo["source"], string> = {
 export default function HighlightReel({
   videos,
   accent,
+  accentSecondary,
   athleteHandle,
   canLike = false,
   likeInfo = {},
@@ -21,6 +22,7 @@ export default function HighlightReel({
 }: {
   videos: HighlightVideo[];
   accent: string;
+  accentSecondary?: string;
   athleteHandle: string;
   canLike?: boolean;
   likeInfo?: Record<string, HighlightLikeInfo>;
@@ -41,7 +43,7 @@ export default function HighlightReel({
               <div
                 className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg"
                 style={{
-                  background: `linear-gradient(155deg, color-mix(in srgb, ${accent} 45%, var(--color-surface-sunken)) 0%, var(--color-surface-sunken) 100%)`,
+                  background: `linear-gradient(155deg, color-mix(in srgb, ${accent} 45%, var(--color-surface-sunken)) 0%, color-mix(in srgb, ${accentSecondary ?? accent} 30%, var(--color-surface-sunken)) 100%)`,
                 }}
               >
                 <svg

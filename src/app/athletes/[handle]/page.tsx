@@ -14,7 +14,7 @@ import { getHighlightComments } from "@/lib/highlightComments";
 import { getVideoShareCounts } from "@/lib/videoShares";
 import { getAchievementLikeInfo } from "@/lib/achievementLikes";
 import { getAchievementComments } from "@/lib/achievementComments";
-import { SPORT_LIVE_ACCENT } from "@/lib/sports";
+import { SPORT_LIVE_ACCENT, SPORT_LIVE_ACCENT_SECONDARY } from "@/lib/sports";
 import { auth } from "@/auth";
 import SportTheme from "@/components/SportTheme";
 import Cover from "@/components/athlete/Cover";
@@ -150,6 +150,7 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
             <MatchHighlights
               videos={matchHighlights}
               accent={SPORT_LIVE_ACCENT}
+              accentSecondary={SPORT_LIVE_ACCENT_SECONDARY}
               shareCounts={matchHighlightShareCounts}
             />
           )}
@@ -157,6 +158,7 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
             <HighlightReel
               videos={athlete.highlights}
               accent={SPORT_LIVE_ACCENT}
+              accentSecondary={SPORT_LIVE_ACCENT_SECONDARY}
               athleteHandle={handle}
               canLike={canLikeHighlights}
               likeInfo={highlightLikeInfo}

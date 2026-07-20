@@ -77,6 +77,29 @@ export type AthleteVideoEntry = {
   createdAt: string;
 };
 
+export async function getRecentTeamVideos(
+  teamId: string,
+  limit = 4
+): Promise<AthleteVideoEntry[]> {
+  const videos = await prisma.video.findMany({
+    where: { teamId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+
+  return videos.map((v) => ({
+    id: v.id,
+    title: v.title,
+    description: v.description,
+    storageUrl: v.storageUrl,
+    thumbnailUrl: v.thumbnailUrl,
+    tags: v.tags,
+    visibility: v.visibility,
+    isHighlight: v.isHighlight,
+    createdAt: toDateKey(v.createdAt),
+  }));
+}
+
 export async function getAthleteVideos(athleteId: string): Promise<AthleteVideoEntry[]> {
   const videos = await prisma.video.findMany({
     where: { athleteId },

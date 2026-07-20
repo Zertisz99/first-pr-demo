@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Athlete } from "@/lib/athletes";
-import { SPORT_LABELS, SPORT_LIVE_ACCENT } from "@/lib/sports";
+import { SPORT_LABELS, SPORT_LIVE_ACCENT, SPORT_LIVE_ACCENT_SECONDARY } from "@/lib/sports";
 import ScoutActions from "@/components/athlete/ScoutActions";
 import FollowButton from "@/components/athlete/FollowButton";
 
@@ -29,7 +29,7 @@ export default function Cover({
     <div
       className="relative overflow-hidden rounded-2xl border border-line"
       style={{
-        background: `linear-gradient(135deg, color-mix(in srgb, ${SPORT_LIVE_ACCENT} 34%, var(--color-surface-sunken)) 0%, var(--color-surface-sunken) 62%)`,
+        background: `linear-gradient(135deg, color-mix(in srgb, ${SPORT_LIVE_ACCENT} 34%, var(--color-surface-sunken)) 0%, color-mix(in srgb, ${SPORT_LIVE_ACCENT_SECONDARY} 22%, var(--color-surface-sunken)) 100%)`,
       }}
     >
       <div

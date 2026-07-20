@@ -4,6 +4,7 @@ import { getTeamInjuries, type InjuryEntry } from "@/lib/injuries";
 import { getUpcomingTeamEvents, type CalendarEvent } from "@/lib/calendar";
 import { getTeamAnnouncements, type AnnouncementEntry } from "@/lib/announcements";
 import { getSeasonRecord, type SeasonRecord } from "@/lib/season";
+import { getRecentTeamVideos, type AthleteVideoEntry } from "@/lib/videos";
 import type { RosterMember } from "@/components/coach/RosterSummaryWidget";
 
 export type CoachDashboardData = {
@@ -13,6 +14,7 @@ export type CoachDashboardData = {
   upcomingEvents: CalendarEvent[];
   announcements: AnnouncementEntry[];
   seasonRecord: SeasonRecord;
+  recentVideos: AthleteVideoEntry[];
 };
 
 export async function getCoachDashboardData(teamId: string): Promise<CoachDashboardData> {
@@ -32,6 +34,7 @@ export async function getCoachDashboardData(teamId: string): Promise<CoachDashbo
   const upcomingEvents = await getUpcomingTeamEvents(teamId, 5);
   const announcements = await getTeamAnnouncements(teamId);
   const seasonRecord = await getSeasonRecord(teamId);
+  const recentVideos = await getRecentTeamVideos(teamId, 4);
 
   return {
     roster,
@@ -40,5 +43,6 @@ export async function getCoachDashboardData(teamId: string): Promise<CoachDashbo
     upcomingEvents,
     announcements: announcements.slice(0, 5),
     seasonRecord,
+    recentVideos,
   };
 }

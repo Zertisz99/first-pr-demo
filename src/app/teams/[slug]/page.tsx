@@ -12,6 +12,7 @@ import ProfileTabs, { type ProfileTab } from "@/components/athlete/ProfileTabs";
 import AnnouncementList from "@/components/AnnouncementList";
 import TeamFeedList from "@/components/team/TeamFeedList";
 import ShareButton from "@/components/athlete/ShareButton";
+import VideoThumbnail from "@/components/ui/VideoThumbnail";
 
 export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) {
   const { slug } = await props.params;
@@ -178,12 +179,16 @@ export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {team.videos.map((v) => (
               <div key={v.id} className="rounded-lg border border-line bg-surface-raised p-3">
-                <a href={v.storageUrl} target="_blank" rel="noreferrer" className="block">
-                  <p className="font-body text-[13px] font-semibold text-fg">{v.title}</p>
-                  {v.description && (
-                    <p className="mt-1 font-body text-[12px] text-fg-muted">{v.description}</p>
-                  )}
-                </a>
+                <VideoThumbnail
+                  url={v.storageUrl}
+                  title={v.title}
+                  accent="var(--color-sport-live)"
+                  accentSecondary="var(--color-sport-live-secondary)"
+                />
+                <p className="mt-2 font-body text-[13px] font-semibold text-fg">{v.title}</p>
+                {v.description && (
+                  <p className="mt-1 font-body text-[12px] text-fg-muted">{v.description}</p>
+                )}
                 <ShareButton
                   videoId={v.id}
                   url={v.storageUrl}
@@ -276,7 +281,7 @@ export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) 
           className="mb-8 rounded-2xl border border-line p-6 sm:p-8"
           style={{
             background:
-              "linear-gradient(135deg, color-mix(in srgb, var(--color-sport-live) 30%, var(--color-surface-sunken)) 0%, var(--color-surface-sunken) 70%)",
+              "linear-gradient(135deg, color-mix(in srgb, var(--color-sport-live) 30%, var(--color-surface-sunken)) 0%, color-mix(in srgb, var(--color-sport-live-secondary) 20%, var(--color-surface-sunken)) 100%)",
           }}
         >
           <h1 className="font-display text-3xl font-bold uppercase tracking-wide text-fg sm:text-4xl">

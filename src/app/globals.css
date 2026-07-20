@@ -8,9 +8,12 @@
 
    Palette: cool, restrained neutrals (near-black / near-white)
    with a single signature accent — deliberately not a rainbow.
-   Sport hubs still get their own hue, but deepened and desaturated
-   so they read as one coherent "team colors" family rather than
-   crayon-bright tags.
+   Sport hubs each get a two-tone pair (primary + secondary) evoking
+   that sport's real-world team colors — football green/electric
+   blue, basketball orange/black, tennis yellow/navy, swimming
+   aqua/silver, athletics purple/gold. Martial arts and fitness
+   (not part of that named set) keep a single hue with no distinct
+   secondary.
 ----------------------------------------------------------------*/
 
 :root {
@@ -34,44 +37,61 @@
   --shadow-lg: 0 16px 40px -8px color-mix(in srgb, black 18%, transparent);
   --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* sport accents — one per hub, deepened to sit in the same family */
-  --color-sport-football: #2f6b45;
-  --color-sport-basketball: #ad5710;
-  --color-sport-tennis: #77832a;
-  --color-sport-swimming: #1c7a94;
-  --color-sport-athletics: #a83b24;
+  /* sport accents — a primary + secondary pair per hub, tuned for
+     light backgrounds. Dark-mode overrides below brighten/lighten
+     each so they stay legible on near-black surfaces. */
+  --color-sport-football: #1a7a3e;
+  --color-sport-football-secondary: #0b57d0;
+  --color-sport-basketball: #e2620a;
+  --color-sport-basketball-secondary: #161616;
+  --color-sport-tennis: #c7a600;
+  --color-sport-tennis-secondary: #16234f;
+  --color-sport-swimming: #0891a8;
+  --color-sport-swimming-secondary: #7c8896;
+  --color-sport-athletics: #7c2fc9;
+  --color-sport-athletics-secondary: #a9791a;
   --color-sport-martial: #7a2233;
+  --color-sport-martial-secondary: var(--color-sport-martial);
   --color-sport-fitness: #5b45b0;
+  --color-sport-fitness-secondary: var(--color-sport-fitness);
 
-  /* the "live" sport accent — resolves to the brand accent by default,
-     and is overridden by whichever [data-sport] scope currently wraps
+  /* the "live" sport accents — resolve to the brand accent by default,
+     and are overridden by whichever [data-sport] scope currently wraps
      the element. This is the actual hub-theming mechanism: wrap any
      subtree in <SportTheme sport="..."> and every descendant that reads
-     --color-sport-live picks up that sport's color via the cascade,
-     no prop drilling required. */
+     --color-sport-live / --color-sport-live-secondary picks up that
+     sport's colors via the cascade, no prop drilling required. */
   --color-sport-live: var(--color-accent);
+  --color-sport-live-secondary: var(--color-accent-strong);
 }
 
 [data-sport="football"] {
   --color-sport-live: var(--color-sport-football);
+  --color-sport-live-secondary: var(--color-sport-football-secondary);
 }
 [data-sport="basketball"] {
   --color-sport-live: var(--color-sport-basketball);
+  --color-sport-live-secondary: var(--color-sport-basketball-secondary);
 }
 [data-sport="tennis"] {
   --color-sport-live: var(--color-sport-tennis);
+  --color-sport-live-secondary: var(--color-sport-tennis-secondary);
 }
 [data-sport="swimming"] {
   --color-sport-live: var(--color-sport-swimming);
+  --color-sport-live-secondary: var(--color-sport-swimming-secondary);
 }
 [data-sport="athletics"] {
   --color-sport-live: var(--color-sport-athletics);
+  --color-sport-live-secondary: var(--color-sport-athletics-secondary);
 }
 [data-sport="martial"] {
   --color-sport-live: var(--color-sport-martial);
+  --color-sport-live-secondary: var(--color-sport-martial-secondary);
 }
 [data-sport="fitness"] {
   --color-sport-live: var(--color-sport-fitness);
+  --color-sport-live-secondary: var(--color-sport-fitness-secondary);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -94,6 +114,17 @@
     --shadow-sm: 0 1px 2px color-mix(in srgb, black 40%, transparent);
     --shadow-md: 0 8px 24px -4px color-mix(in srgb, black 50%, transparent);
     --shadow-lg: 0 20px 48px -8px color-mix(in srgb, black 60%, transparent);
+
+    --color-sport-football: #3ecb74;
+    --color-sport-football-secondary: #5b9dff;
+    --color-sport-basketball: #ff8a3d;
+    --color-sport-basketball-secondary: #e7e7ea;
+    --color-sport-tennis: #e8d34a;
+    --color-sport-tennis-secondary: #5c7bd6;
+    --color-sport-swimming: #3dd1e6;
+    --color-sport-swimming-secondary: #c3cad4;
+    --color-sport-athletics: #b58cf0;
+    --color-sport-athletics-secondary: #e8c14a;
   }
 }
 
@@ -116,6 +147,17 @@
   --shadow-sm: 0 1px 2px color-mix(in srgb, black 40%, transparent);
   --shadow-md: 0 8px 24px -4px color-mix(in srgb, black 50%, transparent);
   --shadow-lg: 0 20px 48px -8px color-mix(in srgb, black 60%, transparent);
+
+  --color-sport-football: #3ecb74;
+  --color-sport-football-secondary: #5b9dff;
+  --color-sport-basketball: #ff8a3d;
+  --color-sport-basketball-secondary: #e7e7ea;
+  --color-sport-tennis: #e8d34a;
+  --color-sport-tennis-secondary: #5c7bd6;
+  --color-sport-swimming: #3dd1e6;
+  --color-sport-swimming-secondary: #c3cad4;
+  --color-sport-athletics: #b58cf0;
+  --color-sport-athletics-secondary: #e8c14a;
 }
 
 :root[data-theme="light"] {
@@ -137,6 +179,17 @@
   --shadow-sm: 0 1px 2px color-mix(in srgb, black 6%, transparent);
   --shadow-md: 0 6px 20px -4px color-mix(in srgb, black 12%, transparent);
   --shadow-lg: 0 16px 40px -8px color-mix(in srgb, black 18%, transparent);
+
+  --color-sport-football: #1a7a3e;
+  --color-sport-football-secondary: #0b57d0;
+  --color-sport-basketball: #e2620a;
+  --color-sport-basketball-secondary: #161616;
+  --color-sport-tennis: #c7a600;
+  --color-sport-tennis-secondary: #16234f;
+  --color-sport-swimming: #0891a8;
+  --color-sport-swimming-secondary: #7c8896;
+  --color-sport-athletics: #7c2fc9;
+  --color-sport-athletics-secondary: #a9791a;
 }
 
 @theme inline {
@@ -156,13 +209,21 @@
   --color-bad: var(--color-bad);
 
   --color-sport-football: var(--color-sport-football);
+  --color-sport-football-secondary: var(--color-sport-football-secondary);
   --color-sport-basketball: var(--color-sport-basketball);
+  --color-sport-basketball-secondary: var(--color-sport-basketball-secondary);
   --color-sport-tennis: var(--color-sport-tennis);
+  --color-sport-tennis-secondary: var(--color-sport-tennis-secondary);
   --color-sport-swimming: var(--color-sport-swimming);
+  --color-sport-swimming-secondary: var(--color-sport-swimming-secondary);
   --color-sport-athletics: var(--color-sport-athletics);
+  --color-sport-athletics-secondary: var(--color-sport-athletics-secondary);
   --color-sport-martial: var(--color-sport-martial);
+  --color-sport-martial-secondary: var(--color-sport-martial-secondary);
   --color-sport-fitness: var(--color-sport-fitness);
+  --color-sport-fitness-secondary: var(--color-sport-fitness-secondary);
   --color-sport-live: var(--color-sport-live);
+  --color-sport-live-secondary: var(--color-sport-live-secondary);
 
   --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
   --font-body: var(--font-public-sans), ui-sans-serif, sans-serif;

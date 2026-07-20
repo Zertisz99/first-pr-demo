@@ -53,16 +53,41 @@ Env vars live in `.env` (already populated for local dev — `DATABASE_URL`,
 
 ## Status
 
-**Built:** athlete profiles (view + owner-gated edit), CSS-driven sport
-theming (`data-sport` attribute cascade + `--color-sport-live` token — see
-`src/app/globals.css` and `src/components/SportTheme.tsx`), Discover search,
-auth (signup/login/logout, role-gated), coach dashboard (create team,
-invite-based roster with pending/active consent), recovery journal (daily
-check-in, server-computed readiness score, trend chart, owner-only).
+This section previously undersold the app significantly — verify against
+the code, not just this doc, before assuming something isn't built.
 
-**Schema exists, no UI yet:** injuries, training plans/sessions,
-matches/match stats, video upload/tagging/comments, scout watchlist/contact
-requests/profile views, guardian/minor account linking.
+**Built:** athlete profiles (view + owner-gated edit), two-tone CSS-driven
+sport theming (`data-sport` attribute cascade + `--color-sport-live` /
+`--color-sport-live-secondary` tokens — see `src/app/globals.css` and
+`src/components/SportTheme.tsx`), Discover search, auth (signup/login/logout,
+role-gated), recovery journal (daily check-in, server-computed readiness
+score, trend chart, owner-only) with an AI recovery coach (Claude Opus 4.8),
+training plans/sessions, matches/match stats/lineups, injuries, video
+upload/tagging/comments/sharing, scout watchlist/contact requests, club
+portal (squads, co-coach invites, recruitment), social layer (follow, likes,
+comments, achievement posts, team activity feeds — see
+`src/app/athletes/[handle]/page.tsx` and `src/lib/teamFeed.ts`), and a full
+dashboard experience for all four roles:
+- **Athlete** (`/athletes/[handle]/dashboard`, `src/lib/dashboard.ts`):
+  recovery, next training session/match, weekly progress chart,
+  announcements, goals, recent videos, season record, recovery streak, scout
+  activity — responsive via `DashboardShell`/`Sidebar`/`BottomNav`.
+- **Coach** (`/coach/teams/[teamId]/dashboard`, `src/lib/coach-dashboard.ts`):
+  roster recovery monitoring, injury alerts, upcoming events, announcements,
+  recent team videos, season record, roster summary — responsive via
+  `CoachDashboardShell`/`CoachBottomNav`.
+- **Club** (`/club`): squad/roster admin, each squad links to its own
+  (shared, coach-authored) team dashboard above via `canManageTeam` — this is
+  deliberate reuse, not a gap.
+- **Scout** (`/scout`): watchlist, sent contact requests, and a "recent
+  activity" feed of public videos + achievements from watchlisted athletes.
+
+**Schema exists, no UI yet:** profile-view tracking (`ProfileView` model,
+nothing creates rows), guardian/minor account linking. Not yet built:
+advanced Discover filters, Share videos/Achievement posts/Team feeds beyond
+what's listed above, a shared (non-duplicated) dashboard shell component —
+the athlete and coach dashboard shells are near-identical but implemented
+twice, not factored into one reusable component.
 
 ## Working conventions
 

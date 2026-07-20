@@ -16,6 +16,9 @@ export const SPORT_KEYS = Object.keys(SPORT_LABELS) as SportKey[];
 /** CSS var string — resolves via the [data-sport] cascade set up in globals.css. */
 export const SPORT_LIVE_ACCENT = "var(--color-sport-live)";
 
+/** The paired second color in each sport's two-tone theme (e.g. football's electric blue). */
+export const SPORT_LIVE_ACCENT_SECONDARY = "var(--color-sport-live-secondary)";
+
 // "Starting XI" only means something for football; other sports field a
 // team differently (a starting five, or individual singles/doubles
 // rubbers), so the team-sheet role labels vary per sport. The athlete's
