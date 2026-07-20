@@ -15,6 +15,7 @@ export type ProgressionPoint = {
 };
 
 export type Achievement = {
+  id: string;
   title: string;
   period: string;
 };
@@ -26,6 +27,7 @@ export type CareerStint = {
 };
 
 export type HighlightVideo = {
+  id: string;
   title: string;
   duration: string;
   date: string;
@@ -98,13 +100,18 @@ function mapAthlete(row: AthleteRow): Athlete {
       unit: row.progressionUnit,
       points: row.progressionPoints as unknown as ProgressionPoint[],
     },
-    achievements: row.achievements.map((a) => ({ title: a.title, period: a.period })),
+    achievements: row.achievements.map((a) => ({
+      id: a.id,
+      title: a.title,
+      period: a.period,
+    })),
     career: row.career.map((c) => ({
       club: c.club,
       period: c.period,
       note: c.note ?? undefined,
     })),
     highlights: row.highlights.map((h) => ({
+      id: h.id,
       title: h.title,
       duration: h.duration,
       date: h.date.toISOString().slice(0, 10),

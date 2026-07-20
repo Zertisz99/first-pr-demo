@@ -4,10 +4,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getTeamPageData } from "@/lib/team-page";
 import { getTeamAnnouncements } from "@/lib/announcements";
+import { getTeamFeed } from "@/lib/teamFeed";
+import { getVideoShareCounts } from "@/lib/videoShares";
 import { STAFF_ROLE_LABELS } from "@/lib/staff";
 import SportTheme from "@/components/SportTheme";
 import ProfileTabs, { type ProfileTab } from "@/components/athlete/ProfileTabs";
 import AnnouncementList from "@/components/AnnouncementList";
+import TeamFeedList from "@/components/team/TeamFeedList";
+import ShareButton from "@/components/athlete/ShareButton";
 
 export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) {
   const { slug } = await props.params;
@@ -36,9 +40,22 @@ export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) 
       return !!member;
     })());
 
-  const announcements = isTeamMember ? await getTeamAnnouncements(team.id) : [];
+  const [announcements, feed, shareCounts] = await Promise.all([
+    isTeamMember ? getTeamAnnouncements(team.id) : Promise.resolve([]),
+    isTeamMember ? getTeamFeed(team.id) : Promise.resolve([]),
+    getVideoShareCounts(team.videos.map((v) => v.id)),
+  ]);
 
   const tabs: ProfileTab[] = [
+    ...(isTeamMember
+      ? [
+          {
+            key: "feed",
+            label: "Feed",
+            content: <TeamFeedList items={feed} />,
+          },
+        ]
+      : []),
     {
       key: "players",
       label: "Players",
@@ -160,18 +177,19 @@ export default async function TeamPublicPage(props: PageProps<"/teams/[slug]">) 
         team.videos.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {team.videos.map((v) => (
-              <a
-                key={v.id}
-                href={v.storageUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-line bg-surface-raised p-3"
-              >
-                <p className="font-body text-[13px] font-semibold text-fg">{v.title}</p>
-                {v.description && (
-                  <p className="mt-1 font-body text-[12px] text-fg-muted">{v.description}</p>
-                )}
-              </a>
+              <div key={v.id} className="rounded-lg border border-line bg-surface-raised p-3">
+                <a href={v.storageUrl} target="_blank" rel="noreferrer" className="block">
+                  <p className="font-body text-[13px] font-semibold text-fg">{v.title}</p>
+                  {v.description && (
+                    <p className="mt-1 font-body text-[12px] text-fg-muted">{v.description}</p>
+                  )}
+                </a>
+                <ShareButton
+                  videoId={v.id}
+                  url={v.storageUrl}
+                  initialCount={shareCounts[v.id] ?? 0}
+                />
+              </div>
             ))}
           </div>
         ) : (

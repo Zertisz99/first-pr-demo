@@ -71,6 +71,12 @@ model User {
   notificationsSent    Notification[]        @relation("NotificationSender")
   announcements        Announcement[]
   photos               Photo[]
+  following            Follow[]              @relation("Follower")
+  highlightLikes       HighlightLike[]
+  highlightComments    HighlightComment[]
+  videoShares          VideoShare[]
+  achievementLikes     AchievementLike[]
+  achievementComments  AchievementComment[]
 
   createdAt DateTime @default(now())
 
@@ -120,11 +126,30 @@ model Athlete {
   contactRequests ScoutContactRequest[]
   profileViews    ProfileView[]
   goals           AthleteGoal[]
+  followers       Follow[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("athletes")
+}
+
+// ============ SOCIAL LAYER ============
+// A follower relationship is a User (any role) following an Athlete's
+// public profile — not athlete-to-athlete specifically, since coaches,
+// clubs, and scouts should be able to follow too.
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  follower   User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  athleteId  String
+  athlete    Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([followerId, athleteId])
+  @@index([athleteId])
+  @@map("follows")
 }
 
 model Achievement {
@@ -135,7 +160,36 @@ model Achievement {
   period    String
   sortOrder Int     @default(0)
 
+  likes    AchievementLike[]
+  comments AchievementComment[]
+
   @@map("achievements")
+}
+
+model AchievementLike {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([achievementId])
+  @@map("achievement_likes")
+}
+
+model AchievementComment {
+  id            String      @id @default(uuid())
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment       String
+  createdAt     DateTime    @default(now())
+
+  @@index([achievementId])
+  @@map("achievement_comments")
 }
 
 model CareerStint {
@@ -159,7 +213,36 @@ model HighlightVideo {
   date      DateTime
   source    VideoSource
 
+  likes    HighlightLike[]
+  comments HighlightComment[]
+
   @@map("highlight_videos")
+}
+
+model HighlightComment {
+  id               String         @id @default(uuid())
+  highlightVideoId String
+  highlightVideo   HighlightVideo @relation(fields: [highlightVideoId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment          String
+  createdAt        DateTime       @default(now())
+
+  @@index([highlightVideoId])
+  @@map("highlight_comments")
+}
+
+model HighlightLike {
+  id               String         @id @default(uuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  highlightVideoId String
+  highlightVideo   HighlightVideo @relation(fields: [highlightVideoId], references: [id], onDelete: Cascade)
+  createdAt        DateTime       @default(now())
+
+  @@unique([userId, highlightVideoId])
+  @@index([highlightVideoId])
+  @@map("highlight_likes")
 }
 
 model DataSource {
@@ -444,10 +527,23 @@ model Video {
 
   athleteTags VideoAthleteTag[]
   comments    VideoComment[]
+  shares      VideoShare[]
 
   createdAt DateTime @default(now())
 
   @@map("videos")
+}
+
+model VideoShare {
+  id        String   @id @default(uuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+  @@map("video_shares")
 }
 
 model VideoAthleteTag {
@@ -541,6 +637,12 @@ enum NotificationType {
   contact_request
   coach_invite
   reply
+  new_follower
+  highlight_liked
+  highlight_comment
+  video_shared
+  achievement_liked
+  achievement_comment
 }
 
 model Notification {

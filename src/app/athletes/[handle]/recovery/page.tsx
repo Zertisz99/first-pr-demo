@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import SportTheme from "@/components/SportTheme";
 import ProgressionChart from "@/components/athlete/ProgressionChart";
 import RecoveryLogForm from "@/components/recovery/RecoveryLogForm";
+import AiCoachCard from "@/components/recovery/AiCoachCard";
 
 export default async function RecoveryJournalPage(
   props: PageProps<"/athletes/[handle]/recovery">
@@ -58,6 +59,8 @@ export default async function RecoveryJournalPage(
               </p>
             )}
           </div>
+
+          <AiCoachCard athleteHandle={handle} />
 
           {history.length > 0 && (
             <div>

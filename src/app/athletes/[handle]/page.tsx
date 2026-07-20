@@ -8,6 +8,12 @@ import {
   getPendingContactRequestStatus,
   getPendingContactRequests,
 } from "@/lib/scouting";
+import { isFollowing, getFollowerCount } from "@/lib/follows";
+import { getHighlightLikeInfo } from "@/lib/highlightLikes";
+import { getHighlightComments } from "@/lib/highlightComments";
+import { getVideoShareCounts } from "@/lib/videoShares";
+import { getAchievementLikeInfo } from "@/lib/achievementLikes";
+import { getAchievementComments } from "@/lib/achievementComments";
 import { SPORT_LIVE_ACCENT } from "@/lib/sports";
 import { auth } from "@/auth";
 import SportTheme from "@/components/SportTheme";
@@ -31,16 +37,46 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
   const isOwner = !!session?.user && session.user.id === athlete.userId;
   const canScoutAthlete =
     session?.user?.role === "club" || session?.user?.role === "scout";
-  const [invites, matchHighlights, contactRequests, alreadyWatchlisted, hasPendingRequest] =
-    await Promise.all([
-      isOwner ? getPendingInvites(handle) : Promise.resolve([]),
-      getPublicHighlights(handle),
-      isOwner ? getPendingContactRequests(handle) : Promise.resolve([]),
-      canScoutAthlete ? getWatchlistStatus(session!.user.id, athlete.id) : Promise.resolve(false),
-      canScoutAthlete
-        ? getPendingContactRequestStatus(session!.user.id, athlete.id)
-        : Promise.resolve(false),
-    ]);
+  const canFollow = !!session?.user && !isOwner;
+  const canLikeHighlights = !!session?.user;
+  const canCommentOnHighlights = !!session?.user;
+  const [
+    invites,
+    matchHighlights,
+    contactRequests,
+    alreadyWatchlisted,
+    hasPendingRequest,
+    isFollowingAthlete,
+    followerCount,
+    highlightLikeInfo,
+    highlightCommentInfo,
+    achievementLikeInfo,
+    achievementCommentInfo,
+  ] = await Promise.all([
+    isOwner ? getPendingInvites(handle) : Promise.resolve([]),
+    getPublicHighlights(handle),
+    isOwner ? getPendingContactRequests(handle) : Promise.resolve([]),
+    canScoutAthlete ? getWatchlistStatus(session!.user.id, athlete.id) : Promise.resolve(false),
+    canScoutAthlete
+      ? getPendingContactRequestStatus(session!.user.id, athlete.id)
+      : Promise.resolve(false),
+    canFollow ? isFollowing(session!.user.id, athlete.id) : Promise.resolve(false),
+    getFollowerCount(athlete.id),
+    getHighlightLikeInfo(
+      athlete.highlights.map((h) => h.id),
+      session?.user?.id
+    ),
+    getHighlightComments(athlete.highlights.map((h) => h.id)),
+    getAchievementLikeInfo(
+      athlete.achievements.map((a) => a.id),
+      session?.user?.id
+    ),
+    getAchievementComments(athlete.achievements.map((a) => a.id)),
+  ]);
+
+  const matchHighlightShareCounts = await getVideoShareCounts(
+    matchHighlights.map((v) => v.id)
+  );
 
   const tabs: ProfileTab[] = [
     {
@@ -111,10 +147,22 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
             </Link>
           )}
           {matchHighlights.length > 0 && (
-            <MatchHighlights videos={matchHighlights} accent={SPORT_LIVE_ACCENT} />
+            <MatchHighlights
+              videos={matchHighlights}
+              accent={SPORT_LIVE_ACCENT}
+              shareCounts={matchHighlightShareCounts}
+            />
           )}
           {athlete.highlights.length > 0 && (
-            <HighlightReel videos={athlete.highlights} accent={SPORT_LIVE_ACCENT} />
+            <HighlightReel
+              videos={athlete.highlights}
+              accent={SPORT_LIVE_ACCENT}
+              athleteHandle={handle}
+              canLike={canLikeHighlights}
+              likeInfo={highlightLikeInfo}
+              canComment={canCommentOnHighlights}
+              commentInfo={highlightCommentInfo}
+            />
           )}
           {matchHighlights.length === 0 && athlete.highlights.length === 0 && (
             <p className="font-body text-sm text-fg-faint">No videos uploaded yet.</p>
@@ -135,6 +183,9 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
           canScoutAthlete={canScoutAthlete}
           alreadyWatchlisted={alreadyWatchlisted}
           hasPendingRequest={hasPendingRequest}
+          canFollow={canFollow}
+          isFollowing={isFollowingAthlete}
+          followerCount={followerCount}
         />
 
         <div className="mt-6">
@@ -148,6 +199,11 @@ export default async function AthleteProfilePage(props: PageProps<"/athletes/[ha
               career={athlete.career}
               achievements={athlete.achievements}
               accent={SPORT_LIVE_ACCENT}
+              athleteHandle={handle}
+              canLike={canLikeHighlights}
+              likeInfo={achievementLikeInfo}
+              canComment={canCommentOnHighlights}
+              commentInfo={achievementCommentInfo}
             />
           </aside>
         </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Athlete } from "@/lib/athletes";
 import { SPORT_LABELS, SPORT_LIVE_ACCENT } from "@/lib/sports";
 import ScoutActions from "@/components/athlete/ScoutActions";
+import FollowButton from "@/components/athlete/FollowButton";
 
 export default function Cover({
   athlete,
@@ -9,12 +10,18 @@ export default function Cover({
   canScoutAthlete = false,
   alreadyWatchlisted = false,
   hasPendingRequest = false,
+  canFollow = false,
+  isFollowing = false,
+  followerCount = 0,
 }: {
   athlete: Athlete;
   isOwner?: boolean;
   canScoutAthlete?: boolean;
   alreadyWatchlisted?: boolean;
   hasPendingRequest?: boolean;
+  canFollow?: boolean;
+  isFollowing?: boolean;
+  followerCount?: number;
 }) {
   const jerseyDigit = athlete.name.length % 10 || 8;
 
@@ -74,6 +81,9 @@ export default function Cover({
           <p className="mt-1 font-body text-sm text-fg-muted">
             {athlete.club} &middot; {athlete.nationality}
           </p>
+          <p className="mt-1 font-body text-[13px] text-fg-faint">
+            {followerCount} {followerCount === 1 ? "follower" : "followers"}
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -97,15 +107,24 @@ export default function Cover({
               </Link>
             </>
           ) : (
-            canScoutAthlete && (
-              <ScoutActions
-                athleteId={athlete.id}
-                athleteHandle={athlete.handle}
-                alreadyWatchlisted={alreadyWatchlisted}
-                hasPendingRequest={hasPendingRequest}
-                athleteClaimed={!!athlete.userId}
-              />
-            )
+            <>
+              {canFollow && (
+                <FollowButton
+                  athleteId={athlete.id}
+                  athleteHandle={athlete.handle}
+                  isFollowing={isFollowing}
+                />
+              )}
+              {canScoutAthlete && (
+                <ScoutActions
+                  athleteId={athlete.id}
+                  athleteHandle={athlete.handle}
+                  alreadyWatchlisted={alreadyWatchlisted}
+                  hasPendingRequest={hasPendingRequest}
+                  athleteClaimed={!!athlete.userId}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
